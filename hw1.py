@@ -56,10 +56,14 @@ for sent in text_sents:
         else:
             words[word] = 1
 
-        if (word,follow_word) in bigrams:
-            bigrams[word, follow_word] += 1
+        if word in bigrams:
+            if follow_word in bigrams[word]:
+                bigrams[word][follow_word] += 1
+            else:
+                bigrams[word][follow_word] = 1
         else:
-            bigrams[word, follow_word] = 1
+            bigrams[word] = {}
+            bigrams[word][follow_word] = 1
 
         i+=1
 
@@ -78,8 +82,11 @@ for sent in text_sents:
 
 print 'calculating probabilities...'
 j = 0
-for (word,follow_word) in bigrams:
-    probabilities[word, follow_word] =  float(bigrams[word, follow_word]) / float(words[word])
+for word in bigrams:
+    for follow_word in bigrams[word]:
+        if word not in probabilities:
+            probabilities[word] = {}
+        probabilities[word][follow_word] =  float(bigrams[word][follow_word]) / float(words[word])
 for word in start_words:
     start_word_probs[word] =  float(start_words[word]) / float(words[word])
 for word in last_words:
@@ -99,6 +106,31 @@ sorted_start_words_probs = sorted(start_word_probs.items(), key=lambda x:x[1], r
 
 sorted_last_words_probs = sorted(last_word_probs.items(), key=lambda x:x[1], reverse=True)
 
+j = 0
+while j < 20:
+    threshold = random.uniform(0.0, 0.2)
+    #print threshold
+    key, value = min(start_word_probs.items(), key=lambda (_, v): abs(v - threshold))
+    first = key
+    output = ""
+    #print first
+    output += first
+    i = 0
+    word = first
+    while i < 25:
+        threshold = random.uniform(0.01, 0.10)
+        if word in probabilities:
+            key, value = min(probabilities[word].items(), key=lambda (_, v): abs(v - threshold))
+            next_word = key
+            output += " " + next_word
+            word = next_word
+        i += 1
+    threshold = random.uniform(0.01, 0.10)
+    key, value = min(last_word_probs.items(), key=lambda (_, v): abs(v - threshold))
+    last_word = key
+    output += " " + last_word + ". "
+    print output
+    j += 1
 #output = str(sorted_start_words_probs[0]) #[0])#[1]
 #i = 0
 #while i < 5:
@@ -107,23 +139,23 @@ sorted_last_words_probs = sorted(last_word_probs.items(), key=lambda x:x[1], rev
 #output += sorted_last_words_probs[0] #[1]#[1] + "."
 #print output
 
-print sorted_start_words_probs[0][0]
-print sorted_probs[0][0][0]
-print sorted_probs[0][0][1]
-print sorted_last_words_probs[0][0]
-
-i = 0
-while i < 100:
-    k = int(random.randint(0,100))
-    j = int(random.randint(0,5))
-
-    output = str(sorted_start_words_probs[k][0])[0].upper() + str(sorted_start_words_probs[k][0])[1:]
-    while j < 6:
-        output += " " + str(sorted_probs[k+j*j][0][0]) + " " + str(sorted_probs[k+j*j][0][1])
-        j += 1
-    output += " " + str(sorted_last_words_probs[k][0]) + ". "
-    print output
-    i += 1
+# print sorted_start_words_probs[0][0]
+# print sorted_probs[0][0]
+# print sorted_probs[0][1]
+# print sorted_last_words_probs[0][0]
+#
+# i = 0
+# while i < 100:
+#     k = int(random.randint(0,100))
+#     j = int(random.randint(0,5))
+#
+#     output = str(sorted_start_words_probs[k][0])[0].upper() + str(sorted_start_words_probs[k][0])[1:]
+#     while j < 6:
+#         output += " " + str(sorted_probs[k+j*j][0]) + " " + str(sorted_probs[k+j*j][1])
+#         j += 1
+#     output += " " + str(sorted_last_words_probs[k][0]) + ". "
+#     print output
+#     i += 1
 #print sorted_probs
 # print start_words
 #first_words = [x for x in sorted_probs if x[0] == 'None']
